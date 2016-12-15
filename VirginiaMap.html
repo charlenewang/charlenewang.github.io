@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CARTO.js | Google Driving Directions</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <link rel="shortcut icon" href="https://carto.com/favicon.ico" />
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    <style>
+      html, body, #map {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      .cartodb-popup-content-wrapper {
+       height: auto;
+      }
+      .cartodb-popup-content {
+       height: auto;
+      }
+      #infowindow_template {
+        width: 300px;
+      }
+      div.cartodb-popup.v2 {
+        width: 300px  !important;
+        height: auto;
+      }  
+
+      #popup-display{
+       color: black !important;               
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="map">
+
+    </div>
+
+      <div class="cartodb-popup v2" id="infowindow_template">
+       <div class="cartodb-popup-content-wrapper">
+         <div class="cartodb-popup-header">
+         </div>
+         <div class="cartodb-popup-content" id="popup-display">
+            <h4 style="color:black;">Trip Distance: <div id="trip-distance"></div></h4>
+            <h4 style="color:black;">Trip Duration: <div id="trip-duration"></div></h4>
+         </div>
+       </div>
+       <div class="cartodb-popup-tip-container"></div>
+    </div>
+
+    <!-- include google maps library -->
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBB9RV1h90jBTbHKHux9V_klZDI7fF-bB4"></script>
+
+    <!-- include cartodb.js library -->
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+
+    <script> // Map center
+    var clickArray = [];
+     var myLatlng = new google.maps.LatLng(37.801434, -78);
+
+     // Map options
+     var myOptions = {
+          zoom: 8,
+          center: myLatlng,
+          disableDefaultUI: true,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+	  styles: [{
+			"elementType": "geometry",
+    			"stylers": [{"color": "#212121"}]
+			},
+  		   {"elementType": "labels.icon","stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#212121"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#757575"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.country",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.locality",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#bdbdbd"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#181818"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#616161"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#1b1b1b"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#2c2c2c"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#8a8a8a"
+      }
+    ]
+  },
+  {
+    "featureType": "road.arterial",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#373737"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#3c3c3c"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway.controlled_access",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#4e4e4e"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#616161"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#000000"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#3d3d3d"
+      }
+    ]
+  }
+]
+};
+
+
+    // Render basemap
+    map = new google.maps.Map(document.getElementById("map"), myOptions);
+
+ // Create services for later rendering of directions
+      var directionsService = new google.maps.DirectionsService();
+      var directionsDisplay = new google.maps.DirectionsRenderer();
+          directionsDisplay.setMap(map);
+
+    function main() {}
+
+// Our CARTO visualization
+      var vizjson_url = "https://enelrach.carto.com/api/v2/viz/47e837ea-82e8-11e6-9903-0ecd1babdde5/viz.json";
+
+      cartodb.createLayer(map, vizjson_url)
+        .addTo(map)
+        .done(function(layers) {
+
+            var subLayer = layers.getSubLayer(0);
+
+            subLayer.setInteraction(true); // Interaction for the layer must be enabled
+
+            // Setup our event when an object is clicked
+            layers.on('featureClick', function(e, latlng, pos, data){
+              var clickLocation = new google.maps.LatLng(latlng[0], latlng[1]);
+              if (clickArray.length === 0) {
+                clickArray.push(clickLocation)
+              } else if (clickArray.length === 1) {
+                clickArray.push(clickLocation)
+                // ask for the directions      
+                var request = {
+                  origin: clickArray[0],
+                  destination: clickArray[1],
+                  travelMode: google.maps.TravelMode.DRIVING
+                }          
+                directionsService.route(request, function(response, status){
+                  if (status === google.maps.DirectionsStatus.OK) {
+                    directionsDisplay.setDirections(response);
+                    var totalDuration = 0;
+                    var totalDistance = 0;
+                    var legs = response.routes[0].legs;
+                    for (var i = 0; i < legs.length; i++) {
+                      totalDistance += parseInt(legs[i].distance.value);
+                      totalDuration += parseInt(legs[i].duration.value);
+                    }
+                    var distanceInMiles = Math.round(totalDistance/1609.34 * 100) / 100
+                    var durationInMinutes = Math.round(totalDuration/60.0 * 100) / 100
+
+                    var distanceText = distanceInMiles + ' miles'
+                    var durationText = durationInMinutes + ' minutes'
+                    document.getElementById('trip-distance').innerHTML= distanceText;
+                    document.getElementById('trip-duration').innerHTML= durationText;
+                    $('#map').append($('#infowindow_template'));
+                  }
+                })
+              } else {
+                clickArray = [];
+                clickArray.push(clickLocation)                
+              }
+            });
+        });
+
+    window.onload = main;
+    </script>
+  </body>
+</html>
